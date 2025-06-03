@@ -1,30 +1,35 @@
 package com.mailer.daily.handler;
 
+import com.amazonaws.serverless.exceptions.ContainerInitializationException;
+import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
+import com.amazonaws.serverless.proxy.model.HttpApiV2ProxyRequest;
+import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mailer.daily.PojaApplication;
 import com.mailer.daily.PojaGenerated;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @PojaGenerated
 @Slf4j
 public class LambdaHandler implements RequestStreamHandler {
-  private final ApiEventHandler apiEventHandler;
+  private static final SpringBootLambdaContainerHandler<HttpApiV2ProxyRequest, AwsProxyResponse>
+      handler;
 
-  @Getter
-  private static final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-
-  public LambdaHandler() {
-    this.apiEventHandler = new ApiEventHandler();
+  static {
+    try {
+      handler = SpringBootLambdaContainerHandler.getHttpApiV2ProxyHandler(PojaApplication.class);
+    } catch (ContainerInitializationException e) {
+      throw new RuntimeException("Initialization of Spring Boot Application failed", e);
+    }
   }
 
   @Override
-  public void handleRequest(InputStream input, OutputStream outputStream, Context context)
+  public void handleRequest(InputStream input, OutputStream output, Context context)
       throws IOException {
-    apiEventHandler.handleRequest(input, outputStream, context);
+    handler.proxyStream(input, output, context);
   }
 }
