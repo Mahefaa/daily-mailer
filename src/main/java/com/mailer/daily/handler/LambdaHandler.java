@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
@@ -27,6 +28,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.springframework.web.util.ServletRequestPathUtils;
 
 @PojaGenerated
+@Slf4j
 public class LambdaHandler
     implements RequestHandler<LambdaUrlRequestEvent, LambdaUrlResponseEvent> {
 
@@ -67,6 +69,7 @@ public class LambdaHandler
       handlerAdapter.handle(request, response, handler);
 
       var responseBody = responseOutputStream.toString(UTF_8);
+      log.info("event {}, context {}, response {}", event, context, responseBody);
       return new LambdaUrlResponseEvent(
           response.getStatus(), flattenHeaders(headers), responseBody);
     } catch (Exception e) {
